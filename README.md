@@ -1,5 +1,10 @@
 # GitHub DevTools MCP Server
 
+![CI](https://github.com/yashgarg4/GitHub-DevTools-MCP-Server/actions/workflows/ci.yml/badge.svg)
+![Python](https://img.shields.io/badge/python-3.11%2B-blue)
+![Tools](https://img.shields.io/badge/MCP%20tools-16-green)
+![Tests](https://img.shields.io/badge/tests-33%20passed-brightgreen)
+
 An MCP (Model Context Protocol) server that provides GitHub repository tools and Gemini-powered AI helpers for Claude Desktop, Cursor, or any MCP-compatible client.
 
 ## Tools
