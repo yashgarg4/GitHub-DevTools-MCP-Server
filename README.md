@@ -32,6 +32,12 @@ An MCP (Model Context Protocol) server that provides GitHub repository tools and
 | `ai_explain_repo` | Fetch repo metadata + README and generate an AI-powered explanation |
 | `ai_release_notes` | Fetch commits between two refs and generate professional release notes |
 
+### Agentic Tools (Multi-Step Orchestration)
+
+| Tool | Description |
+|------|-------------|
+| `ai_full_repo_health_check` | Orchestrates 5 parallel API calls, aggregates data, and produces an AI-powered health report with scored categories (Maintenance, CI/CD, Documentation, Community) and risk recommendations |
+
 ## Setup
 
 1. **Clone and install:**
@@ -170,9 +176,39 @@ Once connected, try these:
 - "Explain what the expressjs/express repository is about"
 - "Generate release notes for python/cpython between v3.12.0 and v3.13.0"
 
+**Agentic Tools:**
+- "Run a full health check on python/cpython"
+- "How healthy is the expressjs/express repository?"
+
+## Running Tests
+
+All tests run without API keys — everything is mocked:
+
+```bash
+pip install -e ".[dev]"
+python -m pytest tests/ -v
+```
+
+23 tests covering:
+- GitHub API functions with mocked HTTP responses (`respx`)
+- AI tools with mocked Gemini responses
+- Structured output parsing and fallback behavior
+- Agentic tool orchestration and partial failure handling
+
+## Architecture
+
+See [DESIGN.md](DESIGN.md) for detailed documentation on:
+- Tool taxonomy and data flow
+- Structured output strategy (Pydantic + JSON schema injection)
+- Prompt engineering approach (persona, few-shot, temperature tuning)
+- Error handling and graceful degradation
+- Agentic tool chaining pattern
+
 ## Tech Stack
 
 - **MCP SDK** (`mcp`) — Anthropic's official Model Context Protocol SDK
 - **httpx** — async HTTP client for GitHub API calls
 - **google-genai** — Gemini Flash for AI-powered tools
+- **Pydantic** — structured output validation for AI responses
 - **python-dotenv** — environment variable management
+- **pytest + respx** — async testing with mocked HTTP/AI responses

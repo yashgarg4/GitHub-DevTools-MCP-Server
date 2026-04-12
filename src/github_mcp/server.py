@@ -1,5 +1,7 @@
 """MCP server entry point. Registers all tools and runs the stdio transport."""
 
+import asyncio
+
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
@@ -21,7 +23,9 @@ from github_mcp.ai_tools import (
     generate_issue_from_code,
     explain_repo,
     generate_release_notes,
+    repo_health_check,
 )
+from github_mcp.models import CodeReviewResult, RepoHealthReport
 
 load_dotenv()
 
@@ -225,6 +229,49 @@ async def list_repo_workflow_runs(
         return f"Error: {e}"
 
 
+# --- Formatting Helpers ---
+
+
+def _format_code_review(review: CodeReviewResult) -> str:
+    """Format a structured CodeReviewResult into readable text."""
+    lines = [f"## Quality Score: {review.quality_score}/10", "", review.summary, ""]
+    if review.bugs:
+        lines.append("## Bugs & Issues")
+        for bug in review.bugs:
+            loc = f"Line {bug.line}: " if bug.line else ""
+            lines.append(f"- [{bug.severity.upper()}] {loc}{bug.description}")
+        lines.append("")
+    if review.suggestions:
+        lines.append("## Suggestions")
+        for s in review.suggestions:
+            lines.append(f"- [{s.category}] {s.description}")
+    return "\n".join(lines)
+
+
+def _format_health_report(report: RepoHealthReport, owner: str, repo: str) -> str:
+    """Format a structured RepoHealthReport into readable text."""
+    s = report.scores
+    lines = [
+        f"# Health Report: {owner}/{repo}",
+        "",
+        f"## Scores",
+        f"  Overall:       {'=' * s.overall}{'.' * (10 - s.overall)} {s.overall}/10",
+        f"  Maintenance:   {'=' * s.maintenance}{'.' * (10 - s.maintenance)} {s.maintenance}/10",
+        f"  CI/CD:         {'=' * s.ci_cd}{'.' * (10 - s.ci_cd)} {s.ci_cd}/10",
+        f"  Documentation: {'=' * s.documentation}{'.' * (10 - s.documentation)} {s.documentation}/10",
+        f"  Community:     {'=' * s.community}{'.' * (10 - s.community)} {s.community}/10",
+        "",
+        report.summary,
+    ]
+    if report.risks:
+        lines.append("")
+        lines.append("## Risks & Recommendations")
+        for risk in report.risks:
+            lines.append(f"- [{risk.severity.upper()}] {risk.area}: {risk.description}")
+            lines.append(f"  Recommendation: {risk.recommendation}")
+    return "\n".join(lines)
+
+
 # --- AI Tools ---
 
 
@@ -233,14 +280,18 @@ async def ai_code_review(code: str, language: str = "python") -> str:
     """Review a code snippet using Gemini AI.
 
     Analyzes code for bugs, suggests improvements, and provides a
-    quality score out of 10. Powered by Gemini Flash.
+    quality score out of 10. Returns structured results with severity
+    levels and categorized suggestions. Powered by Gemini Flash.
 
     Args:
         code: The source code to review.
         language: The programming language of the code. Defaults to 'python'.
     """
     try:
-        return await review_code(code, language)
+        result = await review_code(code, language)
+        if isinstance(result, CodeReviewResult):
+            return _format_code_review(result)
+        return result  # free-text fallback
     except ValueError as e:
         return f"Error: {e}"
     except Exception as e:
@@ -356,6 +407,61 @@ async def ai_release_notes(
         return f"Error: {e}"
     except Exception as e:
         return f"Release notes generation failed: {type(e).__name__}: {e}"
+
+
+# --- Agentic Tools ---
+
+
+@mcp.tool()
+async def ai_full_repo_health_check(owner: str, repo: str) -> str:
+    """Run a comprehensive AI-powered health check on a GitHub repository.
+
+    This is an agentic tool that orchestrates multiple GitHub API calls
+    in parallel to gather repo metadata, issues, pull requests, CI/CD
+    workflow runs, and README content. All data is then sent to Gemini
+    for a scored health report with risks and recommendations.
+
+    Scores returned: Overall, Maintenance, CI/CD, Documentation, Community (each 1-10).
+
+    Args:
+        owner: The GitHub username or organization that owns the repository.
+        repo: The repository name.
+    """
+    try:
+        # Phase 1: Parallel data gathering via asyncio.gather
+        results = await asyncio.gather(
+            get_repo_info(owner, repo),
+            list_issues(owner, repo, state="open"),
+            list_pull_requests(owner, repo, state="open"),
+            list_workflow_runs(owner, repo),
+            get_repo_readme(owner, repo),
+            return_exceptions=True,
+        )
+
+        repo_data, issues, prs, workflows, readme = results
+
+        # Phase 2: Aggregate data, handling partial failures gracefully
+        aggregated = {
+            "repo_info": repo_data if not isinstance(repo_data, Exception) else {},
+            "open_issues": issues if not isinstance(issues, Exception) else [],
+            "open_prs": prs if not isinstance(prs, Exception) else [],
+            "workflow_runs": workflows if not isinstance(workflows, Exception) else [],
+            "readme_exists": not isinstance(readme, Exception),
+            "readme_length": len(readme) if not isinstance(readme, Exception) else 0,
+            "errors": [str(r) for r in results if isinstance(r, Exception)],
+        }
+
+        # Phase 3: AI analysis of aggregated data
+        result = await repo_health_check(aggregated)
+
+        if isinstance(result, RepoHealthReport):
+            return _format_health_report(result, owner, repo)
+        return result  # free-text fallback
+
+    except ValueError as e:
+        return f"Error: {e}"
+    except Exception as e:
+        return f"Health check failed: {type(e).__name__}: {e}"
 
 
 def main():
