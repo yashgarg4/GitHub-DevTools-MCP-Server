@@ -1,0 +1,21 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "github-dev-tools-mcp"
+version = "0.1.0"
+description = "MCP server exposing GitHub DevTools and Gemini-powered AI helpers"
+requires-python = ">=3.11"
+dependencies = [
+    "mcp>=1.27.0",
+    "httpx>=0.27.0",
+    "google-genai>=1.0.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.scripts]
+github-dev-tools-mcp = "github_mcp.server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/github_mcp"]
