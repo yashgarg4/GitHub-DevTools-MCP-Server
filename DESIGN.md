@@ -143,13 +143,48 @@ Layer 3: server.py
     Tools NEVER raise — they always return a string
 ```
 
+## Caching Strategy
+
+In-memory TTL (Time-To-Live) cache for GitHub API responses, implemented as a `@cached(ttl=seconds)` decorator.
+
+```
+github_client.py function call
+    │
+    ├──► Cache HIT? → return cached data (skip API call)
+    │
+    └──► Cache MISS → call GitHub API → store result with TTL → return
+```
+
+**TTL values by function:**
+
+| Function | TTL | Rationale |
+|----------|-----|-----------|
+| `get_repo_info` | 5 min | Stars/forks change slowly |
+| `get_user_profile` | 5 min | Profile data is stable |
+| `compare_branches` | 5 min | Static for given refs |
+| `get_pr_diff` | 5 min | Diff doesn't change for a given PR |
+| `list_issues` | 2 min | Changes occasionally |
+| `list_pull_requests` | 2 min | Changes occasionally |
+| `list_workflow_runs` | 1 min | Changes frequently |
+| `get_repo_readme` | 10 min | Rarely changes |
+| `create_github_issue` | **Not cached** | Write operation |
+| All AI tools | **Not cached** | Each call should produce fresh analysis |
+
+**Key design decisions:**
+- **Decorator-based**: No function logic changes — just add `@cached(ttl=N)`
+- **Exceptions never cached**: Failed API calls are always retried
+- **Cache key = function name + args**: Different arguments get separate entries
+- **User-controllable**: `clear_cache` and `cache_stats` MCP tools let users manage it
+- **Global singleton**: One `TTLCache` instance shared across all functions
+
 ## Testing Strategy
 
-23 tests across 3 files, all running without API keys:
+33 tests across 4 files, all running without API keys:
 
 - **test_github_client.py**: Uses `respx` to mock httpx at transport level. Tests success paths, error handling (401/403/404/rate-limit), input validation, and raw response mode.
 - **test_ai_tools.py**: Uses `unittest.mock.patch` on `_get_client()`. Tests structured output parsing, markdown fence stripping, fallback on invalid JSON, and missing API key handling.
 - **test_server.py**: Tests tool registration count, naming conventions, health check orchestration (verifies all 5 functions are called), and partial failure handling.
+- **test_cache.py**: Tests TTLCache class (set/get/expiry/clear/stats), `@cached` decorator behavior (cache hits, separate keys per args, exceptions not cached), and integration with real GitHub client functions.
 
 ```bash
 python -m pytest tests/ -v  # No API keys needed
@@ -157,7 +192,6 @@ python -m pytest tests/ -v  # No API keys needed
 
 ## Future Roadmap
 
-- **Response caching**: LRU cache for repeated repo queries (reduce API calls)
 - **Pagination**: Support for fetching beyond the current 20-30 result limit
 - **OAuth flow**: Multi-user authentication beyond personal access tokens
 - **More structured outputs**: Extend Pydantic models to other AI tools

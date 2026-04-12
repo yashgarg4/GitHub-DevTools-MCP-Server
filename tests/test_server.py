@@ -7,13 +7,15 @@ from github_mcp.server import mcp, ai_full_repo_health_check
 from github_mcp.models import RepoHealthReport, HealthScore
 
 
-def test_all_14_tools_registered():
-    """Verify all 14 tools are registered."""
+def test_all_16_tools_registered():
+    """Verify all 16 tools are registered."""
     tools = list(mcp._tool_manager._tools.keys())
-    assert len(tools) == 14
+    assert len(tools) == 16
     assert "get_repository_info" in tools
     assert "ai_code_review" in tools
     assert "ai_full_repo_health_check" in tools
+    assert "clear_cache" in tools
+    assert "cache_stats" in tools
 
 
 def test_tool_names_are_descriptive():

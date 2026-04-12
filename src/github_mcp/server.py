@@ -26,10 +26,43 @@ from github_mcp.ai_tools import (
     repo_health_check,
 )
 from github_mcp.models import CodeReviewResult, RepoHealthReport
+from github_mcp.cache import get_cache
 
 load_dotenv()
 
 mcp = FastMCP("GitHub DevTools")
+
+
+# --- Utility Tools ---
+
+
+@mcp.tool()
+async def clear_cache() -> str:
+    """Clear the in-memory response cache for GitHub API calls.
+
+    Use this when you need fresh data and suspect cached results are stale.
+    Returns the number of cache entries that were cleared.
+    """
+    cache = get_cache()
+    count = cache.clear()
+    return f"Cache cleared. Removed {count} cached entries."
+
+
+@mcp.tool()
+async def cache_stats() -> str:
+    """Show current cache statistics including hit rate and entry count.
+
+    Useful for monitoring cache effectiveness and debugging.
+    """
+    stats = get_cache().stats
+    lines = [
+        "## Cache Statistics",
+        f"  Cached entries: {stats['entries']}",
+        f"  Hits: {stats['hits']}",
+        f"  Misses: {stats['misses']}",
+        f"  Hit rate: {stats['hit_rate']}",
+    ]
+    return "\n".join(lines)
 
 
 # --- GitHub Tools ---

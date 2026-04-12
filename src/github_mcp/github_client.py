@@ -6,6 +6,8 @@ from typing import Any
 
 import httpx
 
+from github_mcp.cache import cached
+
 GITHUB_API_BASE = "https://api.github.com"
 
 
@@ -69,6 +71,7 @@ async def _make_request(
     )
 
 
+@cached(ttl=300)  # 5 minutes
 async def get_repo_info(owner: str, repo: str) -> dict:
     """Fetch key metadata for a GitHub repository.
 
@@ -89,6 +92,7 @@ async def get_repo_info(owner: str, repo: str) -> dict:
     }
 
 
+@cached(ttl=120)  # 2 minutes
 async def list_pull_requests(
     owner: str, repo: str, state: str = "open"
 ) -> list[dict]:
@@ -155,6 +159,7 @@ async def create_github_issue(
     }
 
 
+@cached(ttl=120)  # 2 minutes
 async def list_issues(
     owner: str, repo: str, state: str = "open", labels: str | None = None
 ) -> list[dict]:
@@ -191,6 +196,7 @@ async def list_issues(
     ]
 
 
+@cached(ttl=300)  # 5 minutes
 async def get_user_profile(username: str) -> dict:
     """Fetch public profile information for a GitHub user."""
     data = await _make_request("GET", f"/users/{username}")
@@ -208,6 +214,7 @@ async def get_user_profile(username: str) -> dict:
     }
 
 
+@cached(ttl=300)  # 5 minutes
 async def compare_branches(
     owner: str, repo: str, base: str, head: str
 ) -> dict:
@@ -241,6 +248,7 @@ async def compare_branches(
     }
 
 
+@cached(ttl=60)  # 1 minute — changes frequently
 async def list_workflow_runs(
     owner: str, repo: str, status: str | None = None
 ) -> list[dict]:
@@ -277,6 +285,7 @@ async def list_workflow_runs(
     ]
 
 
+@cached(ttl=300)  # 5 minutes
 async def get_pr_diff(owner: str, repo: str, pr_number: int) -> str:
     """Fetch the raw diff for a pull request.
 
@@ -293,6 +302,7 @@ async def get_pr_diff(owner: str, repo: str, pr_number: int) -> str:
     return diff
 
 
+@cached(ttl=600)  # 10 minutes — rarely changes
 async def get_repo_readme(owner: str, repo: str) -> str:
     """Fetch the raw README content for a repository.
 

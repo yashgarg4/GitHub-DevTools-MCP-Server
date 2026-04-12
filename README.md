@@ -38,6 +38,15 @@ An MCP (Model Context Protocol) server that provides GitHub repository tools and
 |------|-------------|
 | `ai_full_repo_health_check` | Orchestrates 5 parallel API calls, aggregates data, and produces an AI-powered health report with scored categories (Maintenance, CI/CD, Documentation, Community) and risk recommendations |
 
+### Utility Tools
+
+| Tool | Description |
+|------|-------------|
+| `clear_cache` | Clear the in-memory response cache for GitHub API calls |
+| `cache_stats` | Show cache statistics — entries, hits, misses, and hit rate |
+
+> GitHub API responses are cached with per-function TTLs (1-10 minutes) to reduce API calls and avoid rate limits. Write operations and AI tools are never cached.
+
 ## Setup
 
 1. **Clone and install:**
@@ -180,6 +189,10 @@ Once connected, try these:
 - "Run a full health check on python/cpython"
 - "How healthy is the expressjs/express repository?"
 
+**Utility:**
+- "Clear the cache"
+- "Show me cache stats"
+
 ## Running Tests
 
 All tests run without API keys — everything is mocked:
@@ -189,11 +202,12 @@ pip install -e ".[dev]"
 python -m pytest tests/ -v
 ```
 
-23 tests covering:
+33 tests covering:
 - GitHub API functions with mocked HTTP responses (`respx`)
 - AI tools with mocked Gemini responses
 - Structured output parsing and fallback behavior
 - Agentic tool orchestration and partial failure handling
+- TTL cache behavior (hits, misses, expiry, exceptions not cached)
 
 ## Architecture
 
