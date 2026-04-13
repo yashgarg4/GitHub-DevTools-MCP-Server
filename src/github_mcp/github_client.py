@@ -159,7 +159,7 @@ async def create_github_issue(
     }
 
 
-@cached(ttl=120)  # 2 minutes
+@cached(ttl=120)  # 2 min
 async def list_issues(
     owner: str, repo: str, state: str = "open", labels: str | None = None
 ) -> list[dict]:
