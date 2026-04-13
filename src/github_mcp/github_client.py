@@ -285,7 +285,7 @@ async def list_workflow_runs(
     ]
 
 
-@cached(ttl=300)  # 5 minutes
+@cached(ttl=300)  # 5 min
 async def get_pr_diff(owner: str, repo: str, pr_number: int) -> str:
     """Fetch the raw diff for a pull request.
 
