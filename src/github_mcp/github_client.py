@@ -302,7 +302,7 @@ async def get_pr_diff(owner: str, repo: str, pr_number: int) -> str:
     return diff
 
 
-@cached(ttl=600)  # 10 minutes 
+@cached(ttl=600)  # 10 min
 async def get_repo_readme(owner: str, repo: str) -> str:
     """Fetch the raw README content for a repository.
 
