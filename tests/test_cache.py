@@ -130,5 +130,4 @@ class TestCacheIntegration:
             assert result2["stars"] == 100
             assert route.call_count == 1  # still 1 — no second API call
 
-        # Clean up
         get_cache().clear()
