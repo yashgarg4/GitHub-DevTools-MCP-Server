@@ -31,10 +31,7 @@ def _parse_json_response(text: str) -> dict:
         raw = raw.split("\n", 1)[1].rsplit("```", 1)[0].strip()
     return json.loads(raw)
 
-
-# ---------------------------------------------------------------------------
 # Code Review — Structured Output with Pydantic
-# ---------------------------------------------------------------------------
 
 async def review_code(code: str, language: str = "python") -> CodeReviewResult | str:
     """Send code to Gemini for a structured review.
