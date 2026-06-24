@@ -180,7 +180,6 @@ async def generate_issue_from_code(code: str, language: str = "python") -> str:
     return response.text
 
 
-# ---------------------------------------------------------------------------
 # Repository Explanation
 # ---------------------------------------------------------------------------
 
