@@ -83,7 +83,6 @@ CODE TO REVIEW:
 
 
 # Commit Message Generation — Enhanced Prompts
-# ---------------------------------------------------------------------------
 
 async def generate_commit_message(changes_description: str) -> str:
     """Generate a conventional commit message from a description of changes.
