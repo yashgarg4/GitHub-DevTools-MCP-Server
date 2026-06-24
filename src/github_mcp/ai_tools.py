@@ -9,7 +9,6 @@ from github_mcp.models import CodeReviewResult, RepoHealthReport
 
 _client = None
 
-
 def _get_client() -> genai.Client:
     """Get or create the Gemini client (lazy initialization)."""
     global _client
