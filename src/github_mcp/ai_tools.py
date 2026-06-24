@@ -205,7 +205,6 @@ async def explain_repo(repo_info: dict, readme_content: str) -> str:
     return response.text
 
 
-# ---------------------------------------------------------------------------
 # Release Notes Generation
 # ---------------------------------------------------------------------------
 
