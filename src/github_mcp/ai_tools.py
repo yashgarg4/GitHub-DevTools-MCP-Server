@@ -181,7 +181,6 @@ async def generate_issue_from_code(code: str, language: str = "python") -> str:
 
 
 # Repository Explanation
-# ---------------------------------------------------------------------------
 
 async def explain_repo(repo_info: dict, readme_content: str) -> str:
     """Generate an AI-powered explanation of a repository."""
