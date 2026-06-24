@@ -128,7 +128,6 @@ CHANGES:
 
 
 # PR Diff Review
-# ---------------------------------------------------------------------------
 
 async def review_pr_diff(diff: str, pr_title: str) -> str:
     """Review a pull request diff using Gemini.
