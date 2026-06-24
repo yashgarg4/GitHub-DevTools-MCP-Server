@@ -206,7 +206,6 @@ async def explain_repo(repo_info: dict, readme_content: str) -> str:
 
 
 # Release Notes Generation
-# ---------------------------------------------------------------------------
 
 async def generate_release_notes(commits: list[dict], repo_name: str) -> str:
     """Generate professional release notes from a list of commits."""
