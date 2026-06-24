@@ -82,7 +82,6 @@ CODE TO REVIEW:
         return response.text  # graceful fallback to free-text
 
 
-# ---------------------------------------------------------------------------
 # Commit Message Generation — Enhanced Prompts
 # ---------------------------------------------------------------------------
 
