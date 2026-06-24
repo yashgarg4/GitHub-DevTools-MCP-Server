@@ -154,7 +154,6 @@ async def review_pr_diff(diff: str, pr_title: str) -> str:
     return response.text
 
 
-# ---------------------------------------------------------------------------
 # Issue Generation from Code
 # ---------------------------------------------------------------------------
 
