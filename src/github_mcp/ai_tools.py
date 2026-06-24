@@ -155,7 +155,6 @@ async def review_pr_diff(diff: str, pr_title: str) -> str:
 
 
 # Issue Generation from Code
-# ---------------------------------------------------------------------------
 
 async def generate_issue_from_code(code: str, language: str = "python") -> str:
     """Analyze buggy code and generate a structured GitHub issue."""
