@@ -232,7 +232,6 @@ async def generate_release_notes(commits: list[dict], repo_name: str) -> str:
 
 
 # Repository Health Check — Agentic Structured Output
-# ---------------------------------------------------------------------------
 
 async def repo_health_check(data: dict) -> RepoHealthReport | str:
     """Analyze aggregated repository data and produce a scored health report.
